@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,6 +39,9 @@ public class CSVUtilTest {
                 .distinct()
                 .collect(Collectors.groupingBy(Player::getClub));
 
+        listFilter.forEach((s,player)-> player.stream().forEach(player2 ->
+                System.out.println("Club: " + player2.club + " " + "Edad: " + player2.age)));
+
         assert listFilter.size() == 322;
     }
 
@@ -63,6 +67,46 @@ public class CSVUtilTest {
         assert listFilter.block().size() == 322;
     }
 
+    @Test
+    @DisplayName("JugadoresMayoresA34PorClub")
+    void stream_filtrarJugadoresMayoresA34PorClub(){
+        List<Player> list = CsvUtilFile.getPlayers();
+        Map<String, List<Player>> listFilter = list.parallelStream()
+                .filter(player -> player.club.equalsIgnoreCase("Botafogo"))
+                .map(player -> {
+                    player.name = player.name.toUpperCase(Locale.ROOT);
+                    return player;
+                })
+                .flatMap(playerA -> list.parallelStream()
+                        .filter(playerB -> playerA.club.equals(playerB.club))
+                )
+                .distinct()
+                .filter(player1 -> player1.age >= 34)
+                .collect(Collectors.groupingBy(Player::getName));
+        listFilter.forEach((s,player)-> player.stream().forEach(player2 ->
+                System.out.println("Nombre: " + player2.name + " " + "Edad: " + player2.age)));
 
+        assert listFilter.size() == 10;
+    }
+
+    @Test
+    @DisplayName("RankingJugadoresPorPais")
+    void stream_filtrarRankingJugadoresPorPais(){
+        List<Player> list = CsvUtilFile.getPlayers();
+        Map<String, List<Player>> listFilter = list.parallelStream()
+                .map(player -> {
+                    player.name = player.name.toUpperCase(Locale.ROOT);
+                    return player;
+                })
+                .flatMap(playerA -> list.parallelStream()
+                        .filter(playerB -> playerA.national.equals(playerB.national))
+                )
+                .distinct()
+                .collect(Collectors.groupingBy(Player::getNational));
+        listFilter.forEach((s,player)-> player.stream().forEach(player2 ->
+                System.out.println("Nombre: " + player2.name + " " + "Edad: " + player2.age)));
+
+        assert listFilter.size() == 1;
+    }
 
 }
