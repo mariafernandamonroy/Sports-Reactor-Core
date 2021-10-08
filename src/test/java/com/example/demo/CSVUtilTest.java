@@ -100,13 +100,15 @@ public class CSVUtilTest {
                 })
                 .flatMap(playerA -> list.parallelStream()
                         .filter(playerB -> playerA.national.equals(playerB.national))
+                        .sorted((a,b) -> Math.max(a.winners,b.winners))
                 )
                 .distinct()
                 .collect(Collectors.groupingBy(Player::getNational));
         listFilter.forEach((s,player)-> player.stream().forEach(player2 ->
-                System.out.println("Nombre: " + player2.name + " " + "Edad: " + player2.age)));
+                System.out.println("Nombre: " + player2.name + "   Nacionalidad: " + player2.national
+                + "   Partidos Ganados: " + player2.winners)));
 
-        assert listFilter.size() == 1;
+        assert listFilter.size() == 164;
     }
 
 }
